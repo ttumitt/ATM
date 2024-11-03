@@ -1,6 +1,11 @@
 document.addEventListener('DOMContentLoaded', () => {
     fetch('data.json')
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('JSON yüklenirken hata oluştu: ' + response.status);
+            }
+            return response.json();
+        })
         .then(locations => {
             const locationList = document.getElementById('location-list');
 
