@@ -1,4 +1,8 @@
 document.addEventListener('DOMContentLoaded', () => {
+    const searchInput = document.getElementById('search-input');
+    const locationList = document.getElementById('location-list');
+    let locations = [];
+
     // Kullanıcının konumunu al
     if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(success, error);
@@ -17,7 +21,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
                 return response.json();
             })
-            .then(locations => {
+            .then(data => {
+                locations = data;
                 // Konumları kullanıcının konumuna göre sırala
                 locations.sort((a, b) => {
                     const distanceA = getDistance(userLat, userLng, a.lat, a.lng);
@@ -25,16 +30,16 @@ document.addEventListener('DOMContentLoaded', () => {
                     return distanceA - distanceB;
                 });
 
-                const locationList = document.getElementById('location-list');
+                // Başlangıçta tüm konumları listele
+                displayLocations(locations);
 
-                locations.forEach(location => {
-                    const item = document.createElement('div');
-                    item.className = 'location-item';
-                    item.textContent = location.name;
-                    item.addEventListener('click', () => {
-                        window.location.href = `https://www.google.com/maps?q=${location.lat},${location.lng}`;
-                    });
-                    locationList.appendChild(item);
+                // Arama kutusuna dinleyici ekle
+                searchInput.addEventListener('input', () => {
+                    const searchTerm = searchInput.value.toLowerCase();
+                    const filteredLocations = locations.filter(location => 
+                        location.name.toLowerCase().includes(searchTerm)
+                    );
+                    displayLocations(filteredLocations);
                 });
             })
             .catch(error => console.error('JSON yüklenirken hata oluştu:', error));
@@ -60,5 +65,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function deg2rad(deg) {
         return deg * (Math.PI / 180);
+    }
+
+    // Konumları ekrana yazdır
+    function displayLocations(locations) {
+        locationList.innerHTML = ''; // Önceki listeyi temizle
+        locations.forEach(location => {
+            const item = document.createElement('div');
+            item.className = 'location-item';
+            item.textContent = location.name;
+            item.addEventListener('click', () => {
+                window.location.href = `https://www.google.com/maps?q=${location.lat},${location.lng}`;
+            });
+            locationList.appendChild(item);
+        });
     }
 });
