@@ -3,15 +3,6 @@ body {
     margin: 20px;
 }
 
-#search-input {
-    width: 100%;
-    padding: 10px;
-    margin-bottom: 20px;
-    font-size: 16px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-}
-
 #location-list {
     margin-top: 20px;
 }
