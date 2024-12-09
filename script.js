@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
     const username = 'ttumitt';
-    const password = '26081924';
+    const password = '12345';
 
     // Login kontrolü
     const loginForm = document.getElementById('login-form');
