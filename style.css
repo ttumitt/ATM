@@ -1,19 +1,30 @@
-body {
-    font-family: Arial, sans-serif;
-    margin: 20px;
-}
-
-#location-list {
-    margin-top: 20px;
-}
-
-.location-item {
-    cursor: pointer;
-    padding: 10px;
+#login-form {
+    max-width: 300px;
+    margin: 50px auto;
+    padding: 20px;
     border: 1px solid #ccc;
-    margin-bottom: 5px;
+    border-radius: 5px;
+    background-color: #f9f9f9;
+    text-align: center;
 }
 
-.location-item:hover {
-    background-color: #f0f0f0;
+#login-form input {
+    width: 90%;
+    padding: 10px;
+    margin-bottom: 10px;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+}
+
+#login-form button {
+    padding: 10px 20px;
+    border: none;
+    background-color: #007BFF;
+    color: white;
+    border-radius: 3px;
+    cursor: pointer;
+}
+
+#login-form button:hover {
+    background-color: #0056b3;
 }
