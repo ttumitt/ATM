@@ -357,7 +357,7 @@
         let currentMarkers = [];
         let currentLocationMarker = null;
         const map = L.map('map').setView([38.4237, 27.1428], 10);
-        
+
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '© OpenStreetMap contributors'
         }).addTo(map);
@@ -421,7 +421,7 @@
         function displayLocations(sortedLocations) {
             const locationList = document.getElementById('locationList');
             locationList.innerHTML = '';
-            
+
             clearMarkers();
 
             // Eğer hiç lokasyon yoksa uyarı göster
@@ -445,10 +445,10 @@
                         </button>
                     </div>
                 `;
-                
+
                 // Konumu haritada göster
                 div.querySelector('strong').onclick = () => showLocationOnMap(loc, div);
-                
+
                 // Yol tarifi butonu
                 div.querySelector('.route-btn').onclick = async (e) => {
                     const userLocation = await getUserLocation();
@@ -522,19 +522,28 @@
         // Anlık arama fonksiyonu
         async function performSearch() {
             const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-            
+
             // Kullanıcı konumunu al
             const userLocation = await getUserLocation();
-            
+
             // Filtreleme (Türkçe ve İngilizce isimlerde arama)
-            const filteredLocations = allLocations.filter(loc => 
-                loc.name.toLowerCase().includes(searchTerm) || 
-                loc.nameEn.toLowerCase().includes(searchTerm)
-            );
-            
+            const filteredLocations = allLocations.filter(loc => {
+                // Tüm kelimeleri kontrol et
+                const searchWords = searchTerm.split(' ').filter(word => word.trim() !== '');
+
+                // Eğer hiçbir kelime girilmediyse tüm lokasyonları göster
+                if (searchWords.length === 0) return true;
+
+                // Her kelime için kontrol
+                return searchWords.every(word => 
+                    loc.name.toLowerCase().includes(word) || 
+                    loc.nameEn.toLowerCase().includes(word)
+                );
+            });
+
             // Mesafeye göre sırala
             const sortedLocations = sortLocationsByDistance(filteredLocations, userLocation.lat, userLocation.lng);
-            
+
             // Sonuçları göster (maks 10 lokasyon)
             const limitedLocations = sortedLocations.slice(0, 10);
             displayLocations(limitedLocations);
