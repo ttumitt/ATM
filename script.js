@@ -5,6 +5,9 @@ document.addEventListener('DOMContentLoaded', () => {
     let locations = [];
     let userLocation = null;
 
+    // Hata ayıklama için konsol log ekledim
+    console.log("Sayfa yüklendi");
+
     // Kullanıcının konumunu al
     function getUserLocation() {
         return new Promise((resolve, reject) => {
@@ -15,6 +18,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             lat: position.coords.latitude,
                             lng: position.coords.longitude
                         };
+                        console.log("Kullanıcı Konumu:", userLocation);
                         resolve(userLocation);
                     },
                     error => {
@@ -53,7 +57,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Konumları listele
     function displayLocations(locationsToShow) {
-        locationList.innerHTML = '';
+        locationList.innerHTML = ''; // Önceki içeriği temizle
+        console.log("Gösterilecek lokasyonlar:", locationsToShow.length);
+
         locationsToShow.forEach(location => {
             const item = document.createElement('div');
             item.className = 'location-item';
@@ -85,19 +91,24 @@ document.addEventListener('DOMContentLoaded', () => {
     // Veriyi yükle ve işle
     fetch('data.json')
         .then(response => {
+            console.log("Fetch response durumu:", response.status);
             if (!response.ok) {
                 throw new Error('JSON yüklenirken hata oluştu: ' + response.status);
             }
             return response.json();
         })
         .then(async loadedLocations => {
+            console.log("Yüklenen lokasyon sayısı:", loadedLocations.length);
             locations = loadedLocations;
             
             // Kullanıcı konumunu al
             await getUserLocation();
 
             // İlk yükleme sırasında konumları mesafeye göre sırala
-            const sortedLocations = sortLocationsByDistance(locations, userLocation);
+            const sortedLocations = userLocation 
+                ? sortLocationsByDistance(locations, userLocation) 
+                : locations.slice(0, 50); // Kullanıcı konumu alınamazsa ilk 50 lokasyonu göster
+
             displayLocations(sortedLocations);
 
             // Arama işlevi
@@ -108,7 +119,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 );
 
                 // Filtrelenmiş konumları mesafeye göre sırala
-                const sortedFilteredLocations = sortLocationsByDistance(filteredLocations, userLocation);
+                const sortedFilteredLocations = userLocation 
+                    ? sortLocationsByDistance(filteredLocations, userLocation) 
+                    : filteredLocations.slice(0, 50);
+
                 displayLocations(sortedFilteredLocations);
             });
 
@@ -119,5 +133,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             });
         })
-        .catch(error => console.error('JSON yüklenirken hata oluştu:', error));
+        .catch(error => {
+            console.error('JSON yüklenirken hata oluştu:', error);
+            // Hata durumunda kullanıcıya bilgi ver
+            locationList.innerHTML = `<div style="color: red;">Lokasyonlar yüklenemedi: ${error.message}</div>`;
+        });
 });
