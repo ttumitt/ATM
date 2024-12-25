@@ -534,8 +534,8 @@
                 // Eğer hiçbir kelime girilmediyse tüm lokasyonları göster
                 if (searchWords.length === 0) return true;
 
-                // Her kelime için kontrol
-                return searchWords.every(word => 
+                // Her kelime için kontrol - kısmi eşleşme
+                return searchWords.some(word => 
                     loc.name.toLowerCase().includes(word) || 
                     loc.nameEn.toLowerCase().includes(word)
                 );
