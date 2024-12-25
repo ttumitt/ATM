@@ -351,7 +351,7 @@
     { "name": "MORDOĞAN BELEDİYESİ/İZMİR", "lat": 38.518728, "lng": 26.625345 },
     { "name": "ADNAN MENDERES BUL./AYDIN", "lat": 37.845828, "lng": 27.84373 },
     { "name": "GERMENCİK İLÇESİ/AYDIN", "lat": 37.869656, "lng": 27.601823 }
-            // Önceki tüm lokasyonları buraya ekleyin
+            // Önceki tüm lokasyonları buraya ekleyin (daha önce paylaştığım lokasyonlar)
         ];
 
         let userLat, userLng;
@@ -526,25 +526,40 @@
             // Kullanıcı konumunu al
             const userLocation = await getUserLocation();
 
-            // Filtreleme (Türkçe isimlerde arama)
+            // Gelişmiş filtreleme (çoklu kelime ve kısmi eşleşme desteği)
             const filteredLocations = allLocations.filter(loc => {
                 // Eğer hiçbir şey girilmediyse tüm lokasyonları göster
                 if (searchTerm === '') return true;
 
-                // Kısmi ve büyük/küçük harf duyarsız arama
-                return loc.name.toLowerCase().includes(searchTerm);
+                // Arama terimini kelimelere ayır
+                const searchWords = searchTerm.split(' ').filter(word => word.trim() !== '');
+
+                // Eğer hiçbir kelime girilmediyse tüm lokasyonları göster
+                if (searchWords.length === 0) return true;
+
+                // Her kelime için kontrol - kısmi ve esnek eşleşme
+                return searchWords.every(word => 
+                    loc.name.toLowerCase().includes(word)
+                );
             });
 
             // Mesafeye göre sırala
             const sortedLocations = sortLocationsByDistance(filteredLocations, userLocation.lat, userLocation.lng);
 
-            // Sonuçları göster (maks 10 lokasyon)
-            const limitedLocations = sortedLocations.slice(0, 10);
+            // Sonuçları göster (maks 20 lokasyon)
+            const limitedLocations = sortedLocations.slice(0, 20);
             displayLocations(limitedLocations);
         }
 
-        // Arama inputuna anlık arama için event listener ekle
-        document.getElementById('searchInput').addEventListener('input', performSearch);
+        // Arama inputuna anlık arama için debounce'lu event listener
+        let searchTimeout;
+        document.getElementById('searchInput').addEventListener('input', function() {
+            // Önceki zamanlayıcıyı temizle
+            clearTimeout(searchTimeout);
+
+            // Yeni bir zamanlayıcı kur (performansı artırmak için)
+            searchTimeout = setTimeout(performSearch, 300);
+        });
 
         // Sayfa yüklendiğinde başlat
         window.onload = initPage;
