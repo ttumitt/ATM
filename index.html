@@ -74,13 +74,13 @@
         // Türkçe karakter ve normalize fonksiyonları
         function normalizeTurkishChars(str) {
             return str
-                .toLowerCase()
-                .replace(/ğ/g, 'g')
-                .replace(/ü/g, 'u')
-                .replace(/ş/g, 's')
-                .replace(/ı/g, 'i')
-                .replace(/ö/g, 'o')
-                .replace(/ç/g, 'c');
+                .toUpperCase() // Tüm karakterleri büyük harfe çevir
+                .replace(/Ğ/g, 'G')
+                .replace(/Ü/g, 'U')
+                .replace(/Ş/g, 'S')
+                .replace(/İ/g, 'I')
+                .replace(/Ö/g, 'O')
+                .replace(/Ç/g, 'C');
         }
 
         // Tüm lokasyonlar
@@ -363,7 +363,6 @@
     { "name": "MORDOĞAN BELEDİYESİ/İZMİR", "lat": 38.518728, "lng": 26.625345 },
     { "name": "ADNAN MENDERES BUL./AYDIN", "lat": 37.845828, "lng": 27.84373 },
     { "name": "GERMENCİK İLÇESİ/AYDIN", "lat": 37.869656, "lng": 27.601823 }
-            // Diğer lokasyonları buraya ekleyin
         ];
 
         let userLat, userLng;
