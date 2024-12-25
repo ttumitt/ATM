@@ -1,26 +1,4 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const username = 'ttumitt';
-    const password = '12345';
-
-    // Login kontrolü
-    const loginForm = document.getElementById('login-form');
-    const appContent = document.getElementById('app-content');
-
-    loginForm.addEventListener('submit', (e) => {
-        e.preventDefault();
-
-        const enteredUsername = document.getElementById('username').value;
-        const enteredPassword = document.getElementById('password').value;
-
-        if (enteredUsername === username && enteredPassword === password) {
-            loginForm.style.display = 'none';
-            appContent.style.display = 'block';
-        } else {
-            alert('Kullanıcı adı veya şifre hatalı!');
-        }
-    });
-
-    // Konumları yükleme
     fetch('data.json')
         .then(response => {
             if (!response.ok) {
