@@ -55,9 +55,6 @@
                 <div class="search-container mb-4">
                     <div class="input-group mb-3">
                         <input type="text" id="searchInput" class="form-control form-control-lg" placeholder="Konum ara...">
-                        <button id="searchButton" class="btn btn-primary btn-lg">
-                            Ara
-                        </button>
                     </div>
                 </div>
             </div>
@@ -505,14 +502,14 @@
             displayLocations(sortedLocations);
         }
 
-        // Arama butonuna tıklama eventi
-        document.getElementById('searchButton').addEventListener('click', async () => {
+        // Anlık arama fonksiyonu
+        async function performSearch() {
             const searchTerm = document.getElementById('searchInput').value.toLowerCase();
             
             // Kullanıcı konumunu al
             const userLocation = await getUserLocation();
             
-            // Filtreleme
+            // Filtreleme (kısmi eşleşme)
             const filteredLocations = locations.filter(loc => 
                 loc.name.toLowerCase().includes(searchTerm)
             );
@@ -522,14 +519,10 @@
             
             // Sonuçları göster
             displayLocations(sortedLocations);
-        });
+        }
 
-        // Enter tuşu ile de arama yapılabilsin
-        document.getElementById('searchInput').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                document.getElementById('searchButton').click();
-            }
-        });
+        // Arama inputuna anlık arama için event listener ekle
+        document.getElementById('searchInput').addEventListener('input', performSearch);
 
         // Sayfa yüklendiğinde başlat
         window.onload = initPage;
