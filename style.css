@@ -3,6 +3,21 @@ body {
     margin: 20px;
 }
 
+.search-container {
+    display: flex;
+    margin-bottom: 20px;
+}
+
+#search-input {
+    flex-grow: 1;
+    padding: 10px;
+    margin-right: 10px;
+}
+
+#search-button {
+    padding: 10px 20px;
+}
+
 #location-list {
     margin-top: 20px;
 }
