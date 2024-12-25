@@ -71,8 +71,8 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
     <script>
-        // Lokasyonlar buraya eklenecek
-        const locations = [
+        // Tüm lokasyonlar
+        const allLocations = [
             { "name": "AYDIN ŞUBE ÖNÜ-2", "lat": 37.8503, "lng": 27.843815 },
     { "name": "DOGU GAZİ BULVARI-1/AYDIN", "lat": 37.849827, "lng": 27.845825 },
     { "name": "İL TELEKOM MÜD. 2/MANİSA", "lat": 38.614831, "lng": 27.4274 },
@@ -355,6 +355,7 @@
 
         let userLat, userLng;
         let currentMarkers = [];
+        let currentLocationMarker = null;
         const map = L.map('map').setView([38.4237, 27.1428], 10);
         
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -483,13 +484,28 @@
                 item.classList.remove('highlight')
             );
 
+            // Önceki kırmızı işaretçiyi kaldır
+            if (currentLocationMarker) {
+                map.removeLayer(currentLocationMarker);
+            }
+
             // Şu anki öğeyi vurgula
             if (element) {
                 element.classList.add('highlight');
             }
 
-            // Haritayı konuma merkezle
+            // Haritayı konuma merkezle ve kırmızı işaretçi koy
             map.setView([location.lat, location.lng], 15);
+            currentLocationMarker = L.marker([location.lat, location.lng], {
+                icon: L.icon({
+                    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
+                    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+                    iconSize: [25, 41],
+                    iconAnchor: [12, 41],
+                    popupAnchor: [1, -34],
+                    shadowSize: [41, 41]
+                })
+            }).addTo(map).bindPopup(location.name);
         }
 
         // Sayfa yüklendiğinde kullanıcı konumunu al ve varsayılan listeyi göster
@@ -498,7 +514,7 @@
             map.setView([userLocation.lat, userLocation.lng], 10);
 
             // Varsayılan olarak tüm lokasyonları mesafeye göre sırala
-            const sortedLocations = sortLocationsByDistance(locations, userLocation.lat, userLocation.lng);
+            const sortedLocations = sortLocationsByDistance(allLocations, userLocation.lat, userLocation.lng);
             displayLocations(sortedLocations);
         }
 
@@ -510,7 +526,7 @@
             const userLocation = await getUserLocation();
             
             // Filtreleme (kısmi eşleşme)
-            const filteredLocations = locations.filter(loc => 
+            const filteredLocations = allLocations.filter(loc => 
                 loc.name.toLowerCase().includes(searchTerm)
             );
             
