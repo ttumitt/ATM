@@ -71,6 +71,18 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
     <script>
+        // Türkçe karakter ve normalize fonksiyonları
+        function normalizeTurkishChars(str) {
+            return str
+                .toLowerCase()
+                .replace(/ğ/g, 'g')
+                .replace(/ü/g, 'u')
+                .replace(/ş/g, 's')
+                .replace(/ı/g, 'i')
+                .replace(/ö/g, 'o')
+                .replace(/ç/g, 'c');
+        }
+
         // Tüm lokasyonlar
         const allLocations = [
             { "name": "AYDIN ŞUBE ÖNÜ-2", "lat": 37.8503, "lng": 27.843815 },
@@ -351,7 +363,7 @@
     { "name": "MORDOĞAN BELEDİYESİ/İZMİR", "lat": 38.518728, "lng": 26.625345 },
     { "name": "ADNAN MENDERES BUL./AYDIN", "lat": 37.845828, "lng": 27.84373 },
     { "name": "GERMENCİK İLÇESİ/AYDIN", "lat": 37.869656, "lng": 27.601823 }
-            // Önceki tüm lokasyonları buraya ekleyin (daha önce paylaştığım lokasyonlar)
+            // Diğer lokasyonları buraya ekleyin
         ];
 
         let userLat, userLng;
@@ -519,9 +531,11 @@
             displayLocations(sortedLocations);
         }
 
-        // Anlık arama fonksiyonu
+        // Gelişmiş arama fonksiyonu
         async function performSearch() {
-            const searchTerm = document.getElementById('searchInput').value.toLowerCase().trim();
+            const searchTerm = normalizeTurkishChars(
+                document.getElementById('searchInput').value.trim()
+            );
 
             // Kullanıcı konumunu al
             const userLocation = await getUserLocation();
@@ -531,6 +545,9 @@
                 // Eğer hiçbir şey girilmediyse tüm lokasyonları göster
                 if (searchTerm === '') return true;
 
+                // Lokasyon adını normalize et
+                const normalizedLocName = normalizeTurkishChars(loc.name);
+
                 // Arama terimini kelimelere ayır
                 const searchWords = searchTerm.split(' ').filter(word => word.trim() !== '');
 
@@ -539,7 +556,7 @@
 
                 // Her kelime için kontrol - kısmi ve esnek eşleşme
                 return searchWords.every(word => 
-                    loc.name.toLowerCase().includes(word)
+                    normalizedLocName.includes(word)
                 );
             });
 
