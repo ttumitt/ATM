@@ -58,15 +58,26 @@ document.addEventListener('DOMContentLoaded', () => {
             const item = document.createElement('div');
             item.className = 'location-item';
             
-            // Mesafe bilgisini ekle
-            const distanceText = location.distance 
-                ? `(${location.distance.toFixed(2)} km)` 
+            const nameSpan = document.createElement('span');
+            nameSpan.className = 'location-item-name';
+            nameSpan.textContent = location.name;
+
+            const distanceSpan = document.createElement('span');
+            distanceSpan.className = 'location-item-distance';
+            distanceSpan.textContent = location.distance 
+                ? `${location.distance.toFixed(2)} km` 
                 : '';
-            
-            item.textContent = `${location.name} ${distanceText}`;
-            item.addEventListener('click', () => {
-                window.location.href = `https://www.google.com/maps?q=${location.lat},${location.lng}`;
-            });
+
+            const routeLink = document.createElement('a');
+            routeLink.href = `https://www.google.com/maps/dir/?api=1&destination=${location.lat},${location.lng}`;
+            routeLink.className = 'location-item-route';
+            routeLink.textContent = 'Yol Tarifi';
+            routeLink.target = '_blank';
+
+            item.appendChild(nameSpan);
+            item.appendChild(distanceSpan);
+            item.appendChild(routeLink);
+
             locationList.appendChild(item);
         });
     }
