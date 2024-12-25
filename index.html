@@ -26,10 +26,16 @@
             cursor: pointer; 
             transition: all 0.3s; 
             border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
         .location-item:hover { 
             background-color: #f0f0f0; 
             transform: translateX(5px);
+        }
+        .route-btn {
+            margin-left: 10px;
         }
         .search-container {
             background-color: white;
@@ -411,6 +417,11 @@
             currentMarkers = [];
         }
 
+        function openGoogleMapsRoute(startLat, startLng, endLat, endLng) {
+            const url = `https://www.google.com/maps/dir/?api=1&origin=${startLat},${startLng}&destination=${endLat},${endLng}&travelmode=driving`;
+            window.open(url, '_blank');
+        }
+
         function displayLocations(sortedLocations) {
             const locationList = document.getElementById('locationList');
             locationList.innerHTML = '';
@@ -421,11 +432,28 @@
                 const div = document.createElement('div');
                 div.classList.add('location-item', 'p-2');
                 div.innerHTML = `
-                    <strong>${loc.name}</strong>
-                    <br>
-                    <small class="text-muted">Mesafe: ${loc.distance.toFixed(2)} km</small>
+                    <div>
+                        <strong>${loc.name}</strong>
+                        <br>
+                        <small class="text-muted">Mesafe: ${loc.distance.toFixed(2)} km</small>
+                    </div>
+                    <button class="btn btn-sm btn-primary route-btn" data-lat="${loc.lat}" data-lng="${loc.lng}">
+                        Yol Tarifi
+                    </button>
                 `;
-                div.onclick = () => showLocationOnMap(loc, div);
+                
+                // Konumu haritada göster
+                div.querySelector('strong').onclick = () => showLocationOnMap(loc, div);
+                
+                // Yol tarifi butonu
+                div.querySelector('.route-btn').onclick = async (e) => {
+                    const userLocation = await getUserLocation();
+                    openGoogleMapsRoute(
+                        userLocation.lat, userLocation.lng, 
+                        loc.lat, loc.lng
+                    );
+                };
+
                 locationList.appendChild(div);
 
                 // Haritada işaretçi oluştur
