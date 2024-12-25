@@ -40,18 +40,33 @@
         .highlight {
             background-color: #e0e0e0;
         }
+        #loadingOverlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255,255,255,0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
     </style>
 </head>
 <body>
+    <div id="loadingOverlay">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Yükleniyor...</span>
+        </div>
+    </div>
+
     <div class="container-fluid mt-4">
         <div class="row justify-content-center">
             <div class="col-md-10">
                 <div class="search-container mb-4">
                     <div class="input-group mb-3">
                         <input type="text" id="searchInput" class="form-control form-control-lg" placeholder="Konum ara...">
-                        <button id="locateMe" class="btn btn-primary btn-lg">
-                            Konumumu Bul
-                        </button>
                     </div>
                 </div>
             </div>
@@ -360,222 +375,25 @@
             attribution: '© OpenStreetMap contributors'
         }).addTo(map);
 
-        function calculateDistance(lat1, lon1, lat2, lon2) {
-            const R = 6371; // Dünya yarıçapı (km)
-            const dLat = (lat2 - lat1) * Math.PI / 180;
-            const dLon = (lon2 - lon1) * Math.PI / 180;
-            const a = 
-                Math.sin(dLat/2) * Math.sin(dLat/2) +
-                Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
-                Math.sin(dLon/2) * Math.sin(dLon/2);
-            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-            return R * c;
-        }
-
-        function sortLocationsByDistance(locations, userLat, userLng) {
-            return locations.map(loc => ({
-                ...loc,
-                distance: calculateDistance(userLat, userLng, loc.lat, loc.lng)
-            })).sort((a, b) => a.distance - b.distance);
-        }
-
-        function clearMarkers() {
-            currentMarkers.forEach(marker => map.removeLayer(marker));
-            currentMarkers = [];
-        }
-
-        function displayLocations(sortedLocations) {
-            const locationList = document.getElementById('locationList');
-            locationList.innerHTML = '';
-            
-            clearMarkers();
-
-            sortedLocations.forEach(loc => {
-                const div = document.createElement('div');
-                div.classList.add('location-item', 'p-2');
-                div.innerHTML = `
-                    <strong>${loc.name}</strong>
-                    <br>
-                    <small class="text-muted">${loc.distance ? 'Mesafe: ' + loc.distance.toFixed(2) + ' km' : ''}</small>
-                `;
-                div.onclick = () => showLocationOnMap(loc, div);
-                locationList.appendChild(div);
-
-                // Haritada işaretçi oluştur
-                const marker = L.marker([loc.lat, loc.lng])
-                    .addTo(map)
-                    .bindPopup(`
-                        <strong>${loc.name}</strong><br>
-                        Enlem: ${loc.lat}<br>
-                        Boylam: ${loc.lng}
-                    `);
-                currentMarkers.push(marker);
+        // Kullanıcının konumunu otomatik olarak al
+        function getUserLocation() {
+            return new Promise((resolve, reject) => {
+                if ("geolocation" in navigator) {
+                    navigator.geolocation.getCurrentPosition(
+                        position => {
+                            userLat = position.coords.latitude;
+                            userLng = position.coords.longitude;
+                            resolve({ lat: userLat, lng: userLng });
+                        },
+                        error => {
+                            reject(error);
+                        }
+                    );
+                } else {
+                    reject(new Error('Konum servisi desteklenmiyor'));
+                }
             });
         }
-
-        function showLocationOnMap(location, element = null) {
-            // Önceki vurgulu öğeyi kaldır
-            document.querySelectorAll('.location-item').forEach(item => 
-                item.classList.remove('highlight')
-            );
-
-            // Şu anki öğeyi vurgula
-            if (element) {
-                element.classList.add('highlight');
-            }
-
-            // Haritayı konuma merkezle
-            map.setView([location.lat, location.lng], 15);
-
-            // Önceki işaretçileri temizle
-            clearMarkers();
-
-            // Yeni işaretçi ekle
-            const marker = L.marker([location.lat, location.lng])
-                .addTo(map)
-                .bindPopup(`
-                    <strong>${location.name}</strong><br>
-                    Enlem: ${location.lat}<br>
-                    Boylam: ${location.lng}
-                `)
-                .openPopup();
-            
-            currentMarkers.push(marker);
-        }
-
-        document.getElementById('locateMe').addEventListener('click', () => {
-            if ("geolocation" in navigator) {
-                navigator.geolocation.getCurrentPosition(position => {
-                    userLat = position.coords.latitude;
-                    userLng = position.coords.longitude;
-                    
-                    map.setView([userLat, userLng], 10);
-                    
-                    // Önceki işaretçileri temizle
-                    clearMarkers();
-
-                    // Kullanıcı konumunu işaretle
-                    const userMarker = L.marker([userLat, userLng])
-                        .addTo(map)
-                        .bindPopup('Sizin Konumunuz')
-                        .openPopup();
-                    currentMarkers.push(userMarker);
-
-                    const sortedLocations = sortLocationsByDistance(locations, userLat, userLng);
-                    displayLocations(sortedLocations);
-                }, 
-                error => {
-                    alert('Konum alınamadı: ' + error.message);
-                });
-            } else {
-                alert('Tarayıcınız konum servisini desteklemiyor.');
-            }
-        });
-
-        document.getElementById('searchInput').addEventListener('input', (e) => {
-            const searchTerm = e.target.value.toLowerCase();
-            const filteredLocations = locations.filter(loc => 
-                loc.name.toLowerCase().includes(searchTerm)
-            );
-            
-            if (userLat && userLng) {
-                const sortedLocations = sortLocationsByDistance(filteredLocations, userLat, userLng);
-                displayLocations(sortedLocations);
-            } else {
-                displayLocations(filteredLocations);
-            }
-        });
-
-        // Sayfa yüklendiğinde varsayılan olarak tüm lokasyonları göster
-        window.onload = () => {
-            displayLocations(locations);
-        };
-    </script>
-</body>
-</html><!DOCTYPE html>
-<html lang="tr">
-<head>
-    <meta charset="UTF-8">
-    <title>Lokasyon Bulucu</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
-    <style>
-        body { 
-            font-family: Arial, sans-serif; 
-            background-color: #f4f4f4;
-        }
-        #map { 
-            height: 500px; 
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        }
-        .location-list { 
-            max-height: 600px; 
-            overflow-y: auto; 
-            background-color: white;
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        }
-        .location-item { 
-            cursor: pointer; 
-            transition: all 0.3s; 
-            border-bottom: 1px solid #eee;
-        }
-        .location-item:hover { 
-            background-color: #f0f0f0; 
-            transform: translateX(5px);
-        }
-        .search-container {
-            background-color: white;
-            border-radius: 10px;
-            padding: 20px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        }
-        .highlight {
-            background-color: #e0e0e0;
-        }
-    </style>
-</head>
-<body>
-    <div class="container-fluid mt-4">
-        <div class="row justify-content-center">
-            <div class="col-md-10">
-                <div class="search-container mb-4">
-                    <div class="input-group mb-3">
-                        <input type="text" id="searchInput" class="form-control form-control-lg" placeholder="Konum ara...">
-                        <button id="locateMe" class="btn btn-primary btn-lg">
-                            Konumumu Bul
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="row justify-content-center">
-            <div class="col-md-4">
-                <div id="locationList" class="location-list p-3"></div>
-            </div>
-            <div class="col-md-6">
-                <div id="map" class="mb-4"></div>
-            </div>
-        </div>
-    </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
-    <script>
-        // Lokasyonlar buraya eklenecek
-        const locations = [
-            // Sizin verdiğiniz lokasyonlar
-        ];
-
-        let userLat, userLng;
-        let currentMarkers = [];
-        const map = L.map('map').setView([38.4237, 27.1428], 10);
-        
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '© OpenStreetMap contributors'
-        }).addTo(map);
 
         function calculateDistance(lat1, lon1, lat2, lon2) {
             const R = 6371; // Dünya yarıçapı (km)
@@ -613,7 +431,7 @@
                 div.innerHTML = `
                     <strong>${loc.name}</strong>
                     <br>
-                    <small class="text-muted">${loc.distance ? 'Mesafe: ' + loc.distance.toFixed(2) + ' km' : ''}</small>
+                    <small class="text-muted">Mesafe: ${loc.distance.toFixed(2)} km</small>
                 `;
                 div.onclick = () => showLocationOnMap(loc, div);
                 locationList.appendChild(div);
@@ -628,6 +446,11 @@
                     `);
                 currentMarkers.push(marker);
             });
+
+            // İlk konumu seç
+            if (sortedLocations.length > 0) {
+                showLocationOnMap(sortedLocations[0], locationList.firstChild);
+            }
         }
 
         function showLocationOnMap(location, element = null) {
@@ -660,53 +483,54 @@
             currentMarkers.push(marker);
         }
 
-        document.getElementById('locateMe').addEventListener('click', () => {
-            if ("geolocation" in navigator) {
-                navigator.geolocation.getCurrentPosition(position => {
-                    userLat = position.coords.latitude;
-                    userLng = position.coords.longitude;
-                    
-                    map.setView([userLat, userLng], 10);
-                    
-                    // Önceki işaretçileri temizle
-                    clearMarkers();
+        // Sayfa yüklendiğinde kullanıcı konumunu al ve lokasyonları sırala
+        async function initializeMap() {
+            try {
+                const location = await getUserLocation();
+                map.setView([location.lat, location.lng], 10);
 
-                    // Kullanıcı konumunu işaretle
-                    const userMarker = L.marker([userLat, userLng])
-                        .addTo(map)
-                        .bindPopup('Sizin Konumunuz')
-                        .openPopup();
-                    currentMarkers.push(userMarker);
+                // Kullanıcı konumunu işaretle
+                const userMarker = L.marker([location.lat, location.lng])
+                    .addTo(map)
+                    .bindPopup('Sizin Konumunuz');
+                currentMarkers.push(userMarker);
 
-                    const sortedLocations = sortLocationsByDistance(locations, userLat, userLng);
-                    displayLocations(sortedLocations);
-                }, 
-                error => {
-                    alert('Konum alınamadı: ' + error.message);
-                });
-            } else {
-                alert('Tarayıcınız konum servisini desteklemiyor.');
+                // Lokasyonları mesafeye göre sırala
+                const sortedLocations = sortLocationsByDistance(locations, location.lat, location.lng);
+                displayLocations(sortedLocations);
+
+                // Yükleme overlay'ini kapat
+                document.getElementById('loadingOverlay').style.display = 'none';
+            } catch (error) {
+                alert('Konum alınamadı: ' + error.message);
+                document.getElementById('loadingOverlay').style.display = 'none';
             }
-        });
+        }
 
+        // Arama inputu için event listener
         document.getElementById('searchInput').addEventListener('input', (e) => {
             const searchTerm = e.target.value.toLowerCase();
-            const filteredLocations = locations.filter(loc => 
-                loc.name.toLowerCase().includes(searchTerm)
-            );
             
-            if (userLat && userLng) {
-                const sortedLocations = sortLocationsByDistance(filteredLocations, userLat, userLng);
-                displayLocations(sortedLocations);
-            } else {
-                displayLocations(filteredLocations);
+            // Eğer kullanıcı konumu henüz alınmadıysa
+            if (!userLat || !userLng) {
+                alert('Lütfen önce konumunuzun belirlenmesini bekleyin.');
+                return;
             }
+
+            // Hem arama hem mesafeye göre filtreleme
+            const filteredLocations = locations
+                .filter(loc => loc.name.toLowerCase().includes(searchTerm))
+                .map(loc => ({
+                    ...loc,
+                    distance: calculateDistance(userLat, userLng, loc.lat, loc.lng)
+                }))
+                .sort((a, b) => a.distance - b.distance);
+
+            displayLocations(filteredLocations);
         });
 
-        // Sayfa yüklendiğinde varsayılan olarak tüm lokasyonları göster
-        window.onload = () => {
-            displayLocations(locations);
-        };
+        // Sayfa yüklendiğinde çalıştır
+        window.onload = initializeMap;
     </script>
 </body>
 </html>
