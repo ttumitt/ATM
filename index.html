@@ -71,7 +71,7 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
     <script>
-        // Tüm lokasyonlar (Türkçe ve İngilizce isimlendirmeler)
+        // Tüm lokasyonlar
         const allLocations = [
             { "name": "AYDIN ŞUBE ÖNÜ-2", "lat": 37.8503, "lng": 27.843815 },
     { "name": "DOGU GAZİ BULVARI-1/AYDIN", "lat": 37.849827, "lng": 27.845825 },
@@ -351,6 +351,7 @@
     { "name": "MORDOĞAN BELEDİYESİ/İZMİR", "lat": 38.518728, "lng": 26.625345 },
     { "name": "ADNAN MENDERES BUL./AYDIN", "lat": 37.845828, "lng": 27.84373 },
     { "name": "GERMENCİK İLÇESİ/AYDIN", "lat": 37.869656, "lng": 27.601823 }
+            // Önceki tüm lokasyonları buraya ekleyin
         ];
 
         let userLat, userLng;
@@ -437,7 +438,7 @@
                     <div>
                         <strong>${loc.name}</strong>
                         <br>
-                        <small class="text-muted">${loc.nameEn} - Mesafe: ${loc.distance.toFixed(2)} km</small>
+                        <small class="text-muted">Mesafe: ${loc.distance.toFixed(2)} km</small>
                     </div>
                     <div>
                         <button class="btn btn-sm btn-primary route-btn" data-lat="${loc.lat}" data-lng="${loc.lng}">
@@ -465,7 +466,6 @@
                     .addTo(map)
                     .bindPopup(`
                         <strong>${loc.name}</strong><br>
-                        ${loc.nameEn}<br>
                         Enlem: ${loc.lat}<br>
                         Boylam: ${loc.lng}<br>
                         Mesafe: ${loc.distance.toFixed(2)} km
@@ -521,24 +521,18 @@
 
         // Anlık arama fonksiyonu
         async function performSearch() {
-            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase().trim();
 
             // Kullanıcı konumunu al
             const userLocation = await getUserLocation();
 
-            // Filtreleme (Türkçe ve İngilizce isimlerde arama)
+            // Filtreleme (Türkçe isimlerde arama)
             const filteredLocations = allLocations.filter(loc => {
-                // Tüm kelimeleri kontrol et
-                const searchWords = searchTerm.split(' ').filter(word => word.trim() !== '');
+                // Eğer hiçbir şey girilmediyse tüm lokasyonları göster
+                if (searchTerm === '') return true;
 
-                // Eğer hiçbir kelime girilmediyse tüm lokasyonları göster
-                if (searchWords.length === 0) return true;
-
-                // Her kelime için kontrol - kısmi eşleşme
-                return searchWords.some(word => 
-                    loc.name.toLowerCase().includes(word) || 
-                    loc.nameEn.toLowerCase().includes(word)
-                );
+                // Kısmi ve büyük/küçük harf duyarsız arama
+                return loc.name.toLowerCase().includes(searchTerm);
             });
 
             // Mesafeye göre sırala
