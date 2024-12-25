@@ -40,33 +40,18 @@
         .highlight {
             background-color: #e0e0e0;
         }
-        #loadingOverlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(255,255,255,0.7);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-        }
     </style>
 </head>
 <body>
-    <div id="loadingOverlay">
-        <div class="spinner-border text-primary" role="status">
-            <span class="visually-hidden">Yükleniyor...</span>
-        </div>
-    </div>
-
     <div class="container-fluid mt-4">
         <div class="row justify-content-center">
             <div class="col-md-10">
                 <div class="search-container mb-4">
                     <div class="input-group mb-3">
                         <input type="text" id="searchInput" class="form-control form-control-lg" placeholder="Konum ara...">
+                        <button id="searchButton" class="btn btn-primary btn-lg">
+                            Ara
+                        </button>
                     </div>
                 </div>
             </div>
@@ -375,7 +360,7 @@
             attribution: '© OpenStreetMap contributors'
         }).addTo(map);
 
-        // Kullanıcının konumunu otomatik olarak al
+        // Kullanıcı konumunu otomatik olarak al
         function getUserLocation() {
             return new Promise((resolve, reject) => {
                 if ("geolocation" in navigator) {
@@ -386,11 +371,18 @@
                             resolve({ lat: userLat, lng: userLng });
                         },
                         error => {
-                            reject(error);
+                            console.error('Konum alınamadı:', error);
+                            // Varsayılan bir konum (örn. İzmir merkez)
+                            userLat = 38.4237;
+                            userLng = 27.1428;
+                            resolve({ lat: userLat, lng: userLng });
                         }
                     );
                 } else {
-                    reject(new Error('Konum servisi desteklenmiyor'));
+                    // Varsayılan konum
+                    userLat = 38.4237;
+                    userLng = 27.1428;
+                    resolve({ lat: userLat, lng: userLng });
                 }
             });
         }
@@ -442,14 +434,15 @@
                     .bindPopup(`
                         <strong>${loc.name}</strong><br>
                         Enlem: ${loc.lat}<br>
-                        Boylam: ${loc.lng}
+                        Boylam: ${loc.lng}<br>
+                        Mesafe: ${loc.distance.toFixed(2)} km
                     `);
                 currentMarkers.push(marker);
             });
 
             // İlk konumu seç
             if (sortedLocations.length > 0) {
-                showLocationOnMap(sortedLocations[0], locationList.firstChild);
+                showLocationOnMap(sortedLocations[0]);
             }
         }
 
@@ -466,71 +459,39 @@
 
             // Haritayı konuma merkezle
             map.setView([location.lat, location.lng], 15);
-
-            // Önceki işaretçileri temizle
-            clearMarkers();
-
-            // Yeni işaretçi ekle
-            const marker = L.marker([location.lat, location.lng])
-                .addTo(map)
-                .bindPopup(`
-                    <strong>${location.name}</strong><br>
-                    Enlem: ${location.lat}<br>
-                    Boylam: ${location.lng}
-                `)
-                .openPopup();
-            
-            currentMarkers.push(marker);
         }
 
-        // Sayfa yüklendiğinde kullanıcı konumunu al ve lokasyonları sırala
-        async function initializeMap() {
-            try {
-                const location = await getUserLocation();
-                map.setView([location.lat, location.lng], 10);
+        // Sayfa yüklendiğinde kullanıcı konumunu al ve varsayılan listeyi göster
+        async function initPage() {
+            const userLocation = await getUserLocation();
+            map.setView([userLocation.lat, userLocation.lng], 10);
 
-                // Kullanıcı konumunu işaretle
-                const userMarker = L.marker([location.lat, location.lng])
-                    .addTo(map)
-                    .bindPopup('Sizin Konumunuz');
-                currentMarkers.push(userMarker);
-
-                // Lokasyonları mesafeye göre sırala
-                const sortedLocations = sortLocationsByDistance(locations, location.lat, location.lng);
-                displayLocations(sortedLocations);
-
-                // Yükleme overlay'ini kapat
-                document.getElementById('loadingOverlay').style.display = 'none';
-            } catch (error) {
-                alert('Konum alınamadı: ' + error.message);
-                document.getElementById('loadingOverlay').style.display = 'none';
-            }
+            // Varsayılan olarak tüm lokasyonları mesafeye göre sırala
+            const sortedLocations = sortLocationsByDistance(locations, userLocation.lat, userLocation.lng);
+            displayLocations(sortedLocations);
         }
 
-        // Arama inputu için event listener
-        document.getElementById('searchInput').addEventListener('input', (e) => {
-            const searchTerm = e.target.value.toLowerCase();
+        // Arama butonuna tıklama eventi
+        document.getElementById('searchButton').addEventListener('click', async () => {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
             
-            // Eğer kullanıcı konumu henüz alınmadıysa
-            if (!userLat || !userLng) {
-                alert('Lütfen önce konumunuzun belirlenmesini bekleyin.');
-                return;
-            }
-
-            // Hem arama hem mesafeye göre filtreleme
-            const filteredLocations = locations
-                .filter(loc => loc.name.toLowerCase().includes(searchTerm))
-                .map(loc => ({
-                    ...loc,
-                    distance: calculateDistance(userLat, userLng, loc.lat, loc.lng)
-                }))
-                .sort((a, b) => a.distance - b.distance);
-
-            displayLocations(filteredLocations);
+            // Kullanıcı konumunu al
+            const userLocation = await getUserLocation();
+            
+            // Filtreleme
+            const filteredLocations = locations.filter(loc => 
+                loc.name.toLowerCase().includes(searchTerm)
+            );
+            
+            // Mesafeye göre sırala
+            const sortedLocations = sortLocationsByDistance(filteredLocations, userLocation.lat, userLocation.lng);
+            
+            // Sonuçları göster
+            displayLocations(sortedLocations);
         });
 
-        // Sayfa yüklendiğinde çalıştır
-        window.onload = initializeMap;
+        // Sayfa yüklendiğinde başlat
+        window.onload = initPage;
     </script>
 </body>
 </html>
