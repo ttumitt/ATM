@@ -1,6 +1,6 @@
 [
     { "name": "AQUA FANTASY SELÇUK/İZMİR", "lat": 37.922772, "lng": 27.280086},
-{ "name": "KINIK POYRACIK BELDESİ/İZMİR", "lat": 39.090574, "lng": 27.348856},
+    { "name": "KINIK POYRACIK BELDESİ/İZMİR", "lat": 39.090574, "lng": 27.348856},
 { "name": "ÖZEL ÇINARLI HASTANESİ/İZMİR", "lat": 38.440673, "lng": 27.172595},
 { "name": "6.ANAJET ÜS KOMUTANLIĞI/BALIKESİR", "lat": 40.336647, "lng": 27.968442},
 { "name": "DİNKÇİLER MAHALLESİ ALTIEYLÜL BELEDİYESİ", "lat": 39.63767, "lng": 27.880382},
@@ -476,8 +476,8 @@
 { "name": "AYDIN ŞUBE ÖNÜ-3", "lat": 37.850234, "lng": 27.843794},
 { "name": "MENDERES KAPALI PAZARYERİ /İZMİR", "lat": 38.255696, "lng": 27.139583},
 { "name": "254 SOKAK KOZAĞAÇ BUCA/İZMİR", "lat": 38.377495, "lng": 27.169241},
-{ "name": "BALIKESİR OTOBÜS TERMİNALİ", "lat": 39.677127, "lng": 27.942212},
-{ "name": "UŞAK ŞUBESİ-5", "lat": 38.678799, "lng": 29.404922},
-{ "name": "10 BURDA AVM/BALIKESİR", "lat": 39.61416, "lng": 27.893739},
+{ "name": "BALIKESİR OTOBÜS TERMİNALİ", "lat": 39.677127, "lng": 27.942212 },
+{ "name": "UŞAK ŞUBESİ-5", "lat": 38.678799, "lng": 29.404922 },
+{ "name": "10 BURDA AVM/BALIKESİR", "lat": 39.61416, "lng": 27.893739 },
 
 ]
